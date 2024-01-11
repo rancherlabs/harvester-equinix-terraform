@@ -1,6 +1,9 @@
 variable "harvester_version" {
   default = "v1.1.2"
 }
+variable "api_key" {
+  default = ""
+}
 
 variable "node_count" {
   default = "2"
@@ -18,10 +21,6 @@ variable "billing_cylce" {
   default = "hourly"
 }
 
-variable "metro" {
-  default = "SG"
-}
-
 variable "ipxe_script" {
   default = "https://raw.githubusercontent.com/rancherlabs/harvester-equinix-terraform/main/ipxe/ipxe-"
 }
@@ -33,11 +32,6 @@ variable "hostname_prefix" {
 variable "spot_instance" {
   default     = false
   description = "Set to true to use spot instance instead of on demand. Also set you max bid price if true."
-}
-
-variable "max_bid_price" {
-  default     = "0.00"
-  description = "Maximum bid price for spot request."
 }
 
 variable "ssh_key" {
