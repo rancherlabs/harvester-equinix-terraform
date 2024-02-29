@@ -2,7 +2,9 @@ variable "harvester_version" {
   default = "v1.1.2"
 }
 variable "api_key" {
-  default = ""
+  type        = string
+  description = "Equinix Metal authentication token"
+  default     = ""
 }
 
 variable "node_count" {
