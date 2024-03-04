@@ -18,5 +18,5 @@ A random token and password will be generated for your example.
 
 If you provide a Rancher API URL and keys, your Harvester environment can be managed by Rancher and a kubeconfig file will be saved locally.
 
-Remove max_bid_price and metro from terraform.tfvars file. We will choose the most affordable metroi and bid_prixe as per the plan size.
+Remove max_bid_price and metro from terraform.tfvars file. We will choose the most affordable metro and bid_price as per the plan size.
  
