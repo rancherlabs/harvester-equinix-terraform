@@ -5,7 +5,7 @@ data "equinix_metal_project" "project" {
 
 data "equinix_metal_ip_block_ranges" "address_block" {
   project_id = data.equinix_metal_project.project.project_id
-  metro      = local.cheapest_metro_price.metro 
+  metro      = local.cheapest_metro_price.metro
 }
 
 
@@ -29,6 +29,17 @@ data "equinix_metal_device" "join_devices" {
   count     = var.node_count - 1
   device_id = var.spot_instance ? data.equinix_metal_spot_market_request.join_req[count.index].device_ids[0] : equinix_metal_device.join[count.index].id
 }
+
+# Find the most affordable metro
+
+data "http" "prices" {
+  url    = "https://api.equinix.com/metal/v1/market/spot/prices/metros"
+  method = "GET"
+  request_headers = {
+    "X-Auth-Token" = var.api_key
+  }
+}
+
 
 
 

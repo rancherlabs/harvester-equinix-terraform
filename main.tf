@@ -10,18 +10,6 @@ resource "random_password" "token" {
   special = false
 }
 
-# Find the most affordable metro
-
-provider "http" {}
-
-data "http" "prices" {
-  url    = "https://api.equinix.com/metal/v1/market/spot/prices/metros"
-  method = "GET"
-  request_headers = {
-    "X-Auth-Token" = var.api_key
-  }
-}
-
 locals {
   machine_size = var.plan
   pricing_data = try(jsondecode(data.http.prices.response_body), null)
@@ -38,6 +26,7 @@ locals {
   } : null
 }
 
+## Keeping it commented for debugging purposes. Will remove once verified.
 #output "http_response" {
 #  value = data.http.prices.response_body
 #}
