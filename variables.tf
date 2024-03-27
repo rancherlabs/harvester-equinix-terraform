@@ -10,6 +10,12 @@ variable "project_name" {
   default = ""
 }
 
+variable "metal_create_project" {
+  type        = bool
+  default     = false
+  description = "Create a Metal Project if this is 'true'. Else use provided 'project_name'"
+}
+
 variable "plan" {
   default = "c3.small.x86"
 }
