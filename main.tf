@@ -10,9 +10,35 @@ resource "random_password" "token" {
   special = false
 }
 
+locals {
+  machine_size = var.plan
+  pricing_data = try(jsondecode(data.http.prices.response_body), null)
+  least_bid_price_metro = can(local.pricing_data) ? flatten([for metro, machines in local.pricing_data.spot_market_prices : [
+    for machine, details in machines : {
+      metro   = metro
+      machine = machine
+      price   = details.price
+    } if machine == local.machine_size
+  ]]) : []
+  cheapest_metro_price = length(local.least_bid_price_metro) > 0 ? {
+    price = min([for price in local.least_bid_price_metro : price.price]...),
+    metro = [for price in local.least_bid_price_metro : price.metro if price.price == min([for price in local.least_bid_price_metro : price.price]...)][0]
+  } : null
+}
+
+## Keeping it commented for debugging purposes. Will remove once verified.
+#output "http_response" {
+#  value = data.http.prices.response_body
+#}
+output "least_bid_price_metro" {
+  value = local.cheapest_metro_price.metro
+}
+
+
+
 resource "equinix_metal_reserved_ip_block" "harvester_vip" {
   project_id = data.equinix_metal_project.project.project_id
-  metro      = var.metro
+  metro      = local.cheapest_metro_price.metro
   type       = "public_ipv4"
   quantity   = 1
 }
@@ -21,7 +47,7 @@ resource "equinix_metal_device" "seed" {
   hostname         = "${var.hostname_prefix}-1"
   count            = var.node_count >= 1 && !var.spot_instance ? 1 : 0
   plan             = var.plan
-  metro            = var.metro
+  metro            = local.cheapest_metro_price.metro
   operating_system = "custom_ipxe"
   billing_cycle    = var.billing_cylce
   project_id       = data.equinix_metal_project.project.project_id
@@ -33,8 +59,8 @@ resource "equinix_metal_device" "seed" {
 resource "equinix_metal_spot_market_request" "seed_spot_request" {
   count            = var.node_count >= 1 && var.spot_instance ? 1 : 0
   project_id       = data.equinix_metal_project.project.project_id
-  max_bid_price    = var.max_bid_price
-  metro            = var.metro
+  max_bid_price    = local.cheapest_metro_price.price
+  metro            = local.cheapest_metro_price.metro
   devices_min      = 1
   devices_max      = 1
   wait_for_devices = true
@@ -59,7 +85,7 @@ resource "equinix_metal_device" "join" {
   hostname         = "${var.hostname_prefix}-${count.index + 2}"
   count            = var.spot_instance ? 0 : var.node_count - 1
   plan             = var.plan
-  metro            = var.metro
+  metro            = local.cheapest_metro_price.metro
   operating_system = "custom_ipxe"
   billing_cycle    = var.billing_cylce
   project_id       = data.equinix_metal_project.project.project_id
@@ -71,8 +97,8 @@ resource "equinix_metal_device" "join" {
 resource "equinix_metal_spot_market_request" "join_spot_request" {
   count            = var.spot_instance ? var.node_count - 1 : 0
   project_id       = data.equinix_metal_project.project.project_id
-  max_bid_price    = var.max_bid_price
-  metro            = var.metro
+  max_bid_price    = local.cheapest_metro_price.price
+  metro            = local.cheapest_metro_price.metro
   devices_min      = 1
   devices_max      = 1
   wait_for_devices = true
@@ -90,7 +116,7 @@ resource "equinix_metal_spot_market_request" "join_spot_request" {
 resource "equinix_metal_vlan" "vlans" {
   count      = var.num_of_vlans
   project_id = data.equinix_metal_project.project.project_id
-  metro      = var.metro
+  metro      = local.cheapest_metro_price.metro
 }
 
 resource "equinix_metal_port_vlan_attachment" "vlan_attach_seed" {
