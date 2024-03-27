@@ -25,7 +25,7 @@ steps:
       from_secret: metal_auth_token
     TF_VAR_project_name:
       from_secret: project_name
-    X-Auth-Token:
+    TF_VAR_api_key:
       from_secret: metal_auth_token
   when:
     branch: main
